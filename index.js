@@ -75,7 +75,7 @@ app.use(
 const connectDB = async () => {
   try {
     await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb+srv://ziadadel6060:Honda999@cluster0.ysigfwu.mongodb.net/"
+      process.env.MONGODB_URI || "mongodb://localhost:27017/italy"
     );
     console.log("MongoDB connected successfully");
   } catch (err) {
@@ -133,6 +133,7 @@ app.use((err, req, res, next) => {
 // ======================================
 const PORT = process.env.PORT || 5000;
 app.get('/health', async (req, res) => {
+  console.log('Health check route is active');
   try {
     const isDbConnected = mongoose.connection.readyState === 1;
 
@@ -145,6 +146,7 @@ app.get('/health', async (req, res) => {
     res.status(500).json({ status: 'fail', error: err.message });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(
