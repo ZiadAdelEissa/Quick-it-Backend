@@ -133,20 +133,13 @@ app.use((err, req, res, next) => {
 // ======================================
 const PORT = process.env.PORT || 5000;
 app.get('/health', async (req, res) => {
-  console.log('Health check route is active');
   try {
-    const isDbConnected = mongoose.connection.readyState === 1;
-
-    if (!isDbConnected) {
-      return res.status(500).json({ status: 'fail', db: 'disconnected' });
-    }
-
-    res.status(200).json({ status: 'ok', db: 'connected' });
+    const dbState = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    res.status(200).json({ status: 'ok', db: dbState });
   } catch (err) {
-    res.status(500).json({ status: 'fail', error: err.message });
+    res.status(500).json({ status: 'error', error: err.message });
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(
