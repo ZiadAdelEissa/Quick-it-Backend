@@ -75,7 +75,7 @@ app.use(
 const connectDB = async () => {
   try {
     await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/italy"
+      process.env.MONGODB_URI || "mongodb+srv://ziadadel6060:Honda999@cluster0.ysigfwu.mongodb.net/"
     );
     console.log("MongoDB connected successfully");
   } catch (err) {
