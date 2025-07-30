@@ -132,6 +132,20 @@ app.use((err, req, res, next) => {
 // SERVER STARTUP
 // ======================================
 const PORT = process.env.PORT || 5000;
+app.get('/health', async (req, res) => {
+  try {
+    const isDbConnected = mongoose.connection.readyState === 1;
+
+    if (!isDbConnected) {
+      return res.status(500).json({ status: 'fail', db: 'disconnected' });
+    }
+
+    res.status(200).json({ status: 'ok', db: 'connected' });
+  } catch (err) {
+    res.status(500).json({ status: 'fail', error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(
     `Server running in ${
