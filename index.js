@@ -78,7 +78,7 @@ app.use(session({
       : undefined // Local development
   },
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI || "mongodb+srv://ziadadel6060:Honda999@cluster0.ysigfwu.mongodb.net/italy",
+    mongoUrl: process.env.MONGODB_URI || "mongodb+srv://ziadadel6060:Honda999@cluster0.ysigfwu.mongodb.net/italy?retryWrites=true&w=majority",
     ttl: 24 * 60 * 60 // 1 day in seconds
   })
 }));
