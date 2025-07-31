@@ -46,7 +46,8 @@ app.use(
 app.use(
   cors({
     origin: [
-    'http://localhost:5173' // Vite default
+     'http://localhost:5173',
+    'https://your-frontend.onrender.com' // Vite default
    
   ],
   credentials: true,
@@ -58,22 +59,24 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "your-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: isProduction,
-        httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI || "mongodb+srv://ziadadel6060:Honda999@cluster0.ysigfwu.mongodb.net/italy?retryWrites=true&w=majority",
-      collectionName: "sessions",
-    }),
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: true, // Must be true for HTTPS
+    httpOnly: true,
+    sameSite: 'none', // Required for cross-site cookies
+    maxAge: 24 * 60 * 60 * 1000,
+    domain: process.env.NODE_ENV === 'production' 
+      ? '.onrender.com' // Allow subdomains
+      : undefined // Local development
+  },
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    ttl: 24 * 60 * 60 // 1 day in seconds
   })
-);
+}));
 
 // ======================================
 // DATABASE CONNECTION
