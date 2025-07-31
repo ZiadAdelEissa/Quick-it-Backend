@@ -45,7 +45,11 @@ app.use(
 // Configure CORS - open for all origins since no frontend yet
 app.use(
   cors({
-    origin: "*",
+    origin: [
+    'http://localhost:5173', // Vite default
+    'https://quick-it-backend.onrender.com'
+  ],
+  credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
