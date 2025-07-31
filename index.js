@@ -8,8 +8,13 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 
+
 // Load environment variables
 dotenv.config();
+if (!process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET is not defined');
+  process.exit(1);
+}
 
 // Route Imports
 import authRoutes from "./routes/authRoutes.js";
@@ -60,7 +65,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET ,
   resave: false,
   saveUninitialized: false,
   cookie: {
