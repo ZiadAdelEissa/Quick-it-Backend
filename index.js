@@ -8,8 +8,13 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 
+
 // Load environment variables
 dotenv.config();
+if (!process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET is not defined');
+  process.exit(1);
+}
 
 // Route Imports
 import authRoutes from "./routes/authRoutes.js";
@@ -28,6 +33,7 @@ import {
 } from "./middleware/authMiddleware.js";
 
 const app = express();
+const isProduction = process.env.NODE_ENV === "production";
 
 // ======================================
 // MIDDLEWARE SETUP
@@ -41,35 +47,41 @@ app.use(
   })
 );
 
+// Configure CORS - open for all origins since no frontend yet
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS"],
+    origin: [
+     'http://localhost:5173',
+    'https://your-frontend.onrender.com' // Vite default
+   
+  ],
+  credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   })
 );
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "your-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    },
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI || "mongodb+srv://ziadadel6060:Honda999@cluster0.ysigfwu.mongodb.net/italy?retryWrites=true&w=majority",
-      collectionName: "sessions",
-    }),
+app.use(session({
+  secret: process.env.SESSION_SECRET ,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: true, // Must be true for HTTPS
+    httpOnly: true,
+    sameSite: 'none', // Required for cross-site cookies
+    maxAge: 24 * 60 * 60 * 1000,
+    domain: process.env.NODE_ENV === 'production' 
+      ? '.onrender.com' // Allow subdomains
+      : undefined // Local development
+  },
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI || "mongodb+srv://ziadadel6060:Honda999@cluster0.ysigfwu.mongodb.net/italy?retryWrites=true&w=majority",
+    ttl: 24 * 60 * 60 // 1 day in seconds
   })
-);
+}));
 
 // ======================================
 // DATABASE CONNECTION
@@ -92,18 +104,27 @@ connectDB();
 // ======================================
 // Public routes
 app.use("/api/auth", authRoutes);
-app.use("/api/services", serviceRoutes); // Only GET is public
-app.use("/api/packages", packageRoutes); // Only GET is public
+app.use("/api/services", serviceRoutes);
+app.use("/api/packages", packageRoutes);
 
 // Authenticated user routes
 app.use("/api/users", isAuthenticated, userRoutes);
 app.use("/api/bookings", isAuthenticated, bookingRoutes);
 
 // Admin routes
-app.use("/api/admin", isAuthenticated,isSuperAdmin,  adminRoutes);
+app.use("/api/admin", isAuthenticated, isSuperAdmin, adminRoutes);
 app.use("/api/branch-admin", isAuthenticated, isSuperAdmin, branchAdminRoutes);
 
-// Health check
+// Health checks
+app.get("/", (req, res) => {
+  const dbState = mongoose.connection.readyState === 1 ? "connected" : "disconnected";
+  res.status(200).json({ 
+    status: "API is running",
+    database: dbState,
+    environment: process.env.NODE_ENV || "development"
+  });
+});
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "healthy" });
 });
@@ -129,9 +150,11 @@ app.use((err, req, res, next) => {
     }),
   });
 });
+
 // ======================================
 // SERVER STARTUP
 // ======================================
+// Use Render's default port (10000) in production or 5000 locally
 const PORT = process.env.PORT || (isProduction ? 10000 : 5000);
 
 app.listen(PORT, () => {
