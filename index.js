@@ -73,9 +73,8 @@ app.use(session({
     httpOnly: true,
     sameSite: 'none', // Required for cross-site cookies
     maxAge: 24 * 60 * 60 * 1000,
-    domain: process.env.NODE_ENV === 'production' 
-      ? '.onrender.com' // Allow subdomains
-      : undefined // Local development
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+
   },
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI || "mongodb+srv://ziadadel6060:Honda999@cluster0.ysigfwu.mongodb.net/italy?retryWrites=true&w=majority",
