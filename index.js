@@ -129,15 +129,14 @@ app.use((err, req, res, next) => {
     }),
   });
 });
-
 // ======================================
 // SERVER STARTUP
 // ======================================
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || (isProduction ? 10000 : 5000);
+
 app.listen(PORT, () => {
   console.log(
-    `Server running in ${
-      process.env.NODE_ENV || "development"
-    } mode on port ${PORT}`
+    `Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`
   );
+  console.log(`MongoDB connection state: ${mongoose.connection.readyState === 1 ? "connected" : "disconnected"}`);
 });
