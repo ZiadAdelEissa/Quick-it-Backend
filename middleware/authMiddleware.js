@@ -28,7 +28,7 @@ const createRoleVerifier = (role) => async (req, res, next) => {
   try {
     const user = await User.findById(req.session.user._id).select("role");
 
-    if (user.role == "customer") {
+    if (!user || user.role !== role) {
       return res.status(403).json({
         system: "carwash-booking",
         code: "ACCESS_DENIED",
